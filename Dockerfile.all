@@ -1,0 +1,26 @@
+FROM ros:humble
+
+# Install MAVROS and dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    ros-humble-mavros \
+    ros-humble-mavros-extras \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy GPS bridge script
+WORKDIR /app
+COPY gps_bridge.py .
+
+# Create entrypoint script
+RUN echo '#!/bin/bash\n\
+source /opt/ros/humble/setup.bash\n\
+# Start MAVROS in background\n\
+ros2 launch mavros mavros.launch.py fcu_url:=${FCU_URL:-udp://:14550@} &\n\
+# Wait for MAVROS to start\n\
+sleep 10\n\
+# Start GPS bridge\n\
+python3 /app/gps_bridge.py' > /entrypoint.sh && \
+chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
