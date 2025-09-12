@@ -1,0 +1,8 @@
+version: '3'
+services:
+  gps-bridge:
+    build: .
+    network_mode: host
+    environment:
+      - ROS_DOMAIN_ID=0
+    restart: unless-stopped
